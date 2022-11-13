@@ -54,7 +54,6 @@ import numpy as np
 import scipy as sp
 from scipy.optimize import leastsq #最小二乘法
 import matplotlib.pyplot as plt #可视化库
-# %matplotlib inline
 
 #目标函数
 def real_func(x):
@@ -74,16 +73,7 @@ def fit_func(p,x):
 def residuals_func(p, x, y):
     ret = fit_func(p, x) - y
     return ret
-	
-	
-	
-# 十个点
-x = np.linspace(0, 1, 10)
-x_points = np.linspace(0, 1, 1000)
 
-# 加上正态分布噪音的目标函数的值
-y_ = real_func(x)
-y = [np.random.normal(0, 0.1)+y1 for y1 in y_]
 
 def fitting(M=0):
     """
@@ -103,8 +93,16 @@ def fitting(M=0):
     plt.legend()
     plt.show()
     return p_lsq
-	
-# M=0
-p_lsq = fitting(M=2)
 
-p_lsq_9 = fitting(M=8)
+if __name__=="__main__":
+    # 十个点
+    x = np.linspace(0, 1, 10)
+    x_points = np.linspace(0, 1, 1000)
+    
+    # 加上正态分布噪音的目标函数的值
+    y_ = real_func(x)
+    y = [np.random.normal(0, 0.1)+y1 for y1 in y_]
+    # M=0
+    p_lsq = fitting(M=2)
+    
+    p_lsq_9 = fitting(M=9)
