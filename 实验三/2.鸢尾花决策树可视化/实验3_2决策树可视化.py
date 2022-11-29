@@ -18,6 +18,8 @@ import pprint
 # data
 def create_data():
     iris = load_iris()
+    # print(iris.data)
+    # print(iris.feature_names)
     df = pd.DataFrame(iris.data, columns=iris.feature_names)
     df['label'] = iris.target
     df.columns = ['sepal length', 'sepal width', 'petal length', 'petal width', 'label']
@@ -30,7 +32,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 '''数据处理完成'''
 
 datasets, labels = create_data()
-train_data = pd.DataFrame(datasets, columns=labels)
+train_data = pd.DataFrame(datasets, columns=[0,1])
 
 
 
@@ -41,3 +43,4 @@ tree_pic = export_graphviz(clf, out_file="mytree.pdf")
 with open('mytree.pdf') as f:
     dot_graph = f.read()
 graphviz.Source(dot_graph)
+print(dot_graph)

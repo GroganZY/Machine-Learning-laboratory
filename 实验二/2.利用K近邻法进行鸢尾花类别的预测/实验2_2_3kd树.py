@@ -1,76 +1,48 @@
-import pandas as pd
+import operator
 import numpy as np
-from collections import Counter
-
-x = np.array(pd.read_csv('iris.csv', usecols=(0, 1, 2, 3), delimiter=',', header=0))  # 读取特征集合
-y = np.array(pd.read_csv('iris.csv')['species'])  # 读取标签集
  
-simple = np.array([3.5,2.4,0.3,2.5])
-
-class KDtreeNode:
-    def __init__(self, val, label, dim, left=None, right=None):
-        self.val = val  # 特征集
-        self.dim = dim  # 维度
-        self.label = label  # 标签
-        self.left = left  # 左子树
-        self.right = right  # 右子树
+# kd-tree每个结点中主要包含的数据结构如下
+class KdNode(object):
+    def __init__(self, dom_elt, split, left, right):
+        self.dom_elt = dom_elt  # k维向量节点(k维空间中的一个样本点)
+        self.split = split      # 整数（进行分割维度的序号）
+        self.left = left        # 该结点分割超平面左子空间构成的kd-tree
+        self.right = right      # 该结点分割超平面右子空间构成的kd-tree
  
-    def __str__(self):
-        return f'特征是：{self.val}, 标签是：{self.label},划分维度:{self.dim}'
-
-def CreateKDtree(x, y, dim):
-    if x.size == 0:
-        return None
-    else:
-        nidx = np.argsort(x, axis=0)[:, dim]  # 按照dim这个维度排序
-        center_num = x.shape[0] // 2  # 中位数的序号
  
-        cut_idx = nidx[center_num]  # 根节点的索引号
-        left_idx = nidx[:center_num]  # 左子树的索引号
-        right_idx = nidx[center_num + 1:]  # 右子树的索引号
+class KdTree(object):
+    def __init__(self, data):
  
-        node_tree = KDtreeNode(x[cut_idx], y[cut_idx], dim)  # KD树的根节点
-        dim = (dim + 1) % x.shape[1]  # 更新维度dim值
-        node_tree.left = CreateKDtree(x[left_idx], y[left_idx], dim)  # 递归左子树
-        node_tree.right = CreateKDtree(x[right_idx], y[right_idx], dim)  # 递归右子树
-        return node_tree  # 得到KD树
-
-def search_KDtree(simple, k):
-    # 初始化距离,最近点为None,最近距离为无穷大
-    nearest_knn = np.array([[None, float('inf')] for _ in range(k)])
-    # 创建一个列表,用于存放从根节点到一个叶子结点的所有节点,找距离最近的点
-    node_list = []
-    # 得到KD树,node_tree是一颗KD树
-    node_tree = CreateKDtree(x, y, 0)
-    while node_tree:
-        # 将所有可能的节点加入到列表中,加入的位置为列表的第一个元素
-        node_list.insert(0, node_tree)
-        dim = node_tree.dim
-        if simple[dim] < node_tree.val[dim]:
-            node_tree = node_tree.left
-        else:
-            node_tree = node_tree.right
-    #从叶子结点开始,回溯
-    for node in node_list:
-        #计算欧几里得距离
-        distance = np.linalg.norm(node.val - simple, ord=2)
-        #np.where返回一个二维数组,及满足要求的位置坐标.less_index为距离小于inf的行的索引
-        less_index = np.where(distance < nearest_knn[:,1])[0]
-        #print(nearest_knn)
-        if less_index.size > 0:
-            #对nearest_knn进行更新
-            nearest_knn = np.insert(nearest_knn, less_index[0], [node, distance], axis=0)[:k]  #只取前k个距离最短的
-        radius = nearest_knn[:,1][k-1]                #radius为k个距离中最远的那个,欧几里得距离
-        dis = simple[node.dim] - node.val[node.dim]   #所求点到超平面的距离
-        if radius > abs(dis):                              #如果欧几里得距离大于到超平面的距离
-            if dis > 0:                               #如果simple[node.dim] > node.val[node.dim],加入左子树
-                append_node = node.left
-            else:
-                append_node = node.right              #否则,加入左右树
-            if append_node is not None:
-                node_list.append(append_node)
-    return([lab[0].label for lab in nearest_knn if lab[0] is not None])
-
-
-lb = search_KDtree(simple, 3)
-print('预测结果为:'+Counter(lb).most_common(1)[0][0])
+        def CreateNode(split, data_set):  # 按第split维划分数据集exset创建KdNode
+            if not data_set:              # 数据集为空
+                return None
+            # key参数的值为一个函数，此函数只有一个参数且返回一个值用来进行比较
+            # operator模块提供的itemgetter函数用于获取对象的哪些维的数据，参数为需要获取的数据在对象中的序号
+            data_set.sort(key=operator.itemgetter(split)) # 按要进行分割的那一维数据排序  从小到大排序
+            #data_set.sort(key=lambda x: x[split])
+            split_pos = len(data_set) // 2     # //为Python中的整数除法
+            median = data_set[split_pos]       # 中位数分割点
+            leftdata=data_set[:split_pos]
+            rightdata=data_set[split_pos+1:]
+            split_next1=np.argmax(np.var(leftdata,0))
+            split_next2=np.argmax(np.var(rightdata,0))
+            # 递归的创建kd树
+            return KdNode(median, split, CreateNode(split_next1,leftdata), CreateNode(split_next2, rightdata))
+                                           
+ 
+        self.root = CreateNode(0, data)  # 从第0维分量开始构建kd树,返回根节点
+ 
+ 
+# KDTree的前序遍历
+def preorder(root):
+    print(root.dom_elt)
+    if root.left:  # 节点不为空
+        preorder(root.left)
+    if root.right:
+        preorder(root.right)
+ 
+ 
+if __name__ == "__main__":
+    data = [[2, 3], [5, 4], [9, 6], [4, 7], [8, 1], [7, 2]]
+    kd = KdTree(data)
+    preorder(kd.root)

@@ -71,9 +71,9 @@ if __name__=="__main__":
     #  正则化参数
     regularization = 0.0001
     # 十五个点
-    x = np.linspace(0, 1, 15)
-    x_points = np.linspace(0, 1, 1000)
+    x = np.linspace(-1, 1, 15)
+    x_points = np.linspace(-1, 1, 1000)
     # 加上正态分布噪音的目标函数的值
     y_ = real_func(x)
     y = [np.random.normal(0, 0.1)+y1 for y1 in y_]
-    draw(M=9)
+    draw(M=5)

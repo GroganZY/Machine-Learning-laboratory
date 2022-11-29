@@ -6,6 +6,7 @@
 # x = np.linspace(0, 1, 10)
 # y = func(x)
 # xi = np.linspace(0, 1, 30)
+import random
 
 # #多项式
 # def fit_func(p,x):
@@ -55,6 +56,7 @@ import scipy as sp
 from scipy.optimize import leastsq #最小二乘法
 import matplotlib.pyplot as plt #可视化库
 # %matplotlib inline
+np.random
 
 #目标函数
 def real_func(x):
